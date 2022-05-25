@@ -41,10 +41,12 @@ namespace printSheets
 
             var i = new Program();
             i.path(args);
-            var fileNames = i.getFiles();
+            var fileNames = i.getFiles().ToArray();
+            Array.Sort(fileNames, new CompareStrangAsNumber());
             i.createDir(pdfDir);
             var pdfFiles = i.printResultsExcelHandler(fileNames);
             i.createDir(mergedDir);
+            Console.WriteLine("PAth: " + pdfFiles.FirstOrDefault());
             i.MergeMultiplePDFIntoSinglePDF(pdfFiles);
 
         }
@@ -138,11 +140,13 @@ namespace printSheets
 
         private void MergeMultiplePDFIntoSinglePDF(ICollection<string> pdfFiles)
         {
+            Console.WriteLine("PAth2: " + pdfFiles.FirstOrDefault());
             var now = DateTime.Now;
             PdfDocument document = new PdfDocument();
 
             foreach (string pdfFile in pdfFiles)
             {
+                Console.WriteLine("PAth3: " + pdfFile);
                 PdfDocument inputPDFDocument = PdfReader.Open(pdfFile, PdfDocumentOpenMode.Import);
                 document.Version = inputPDFDocument.Version;
 
@@ -168,7 +172,8 @@ namespace printSheets
             //    var pdfFile = Path.GetFileNameWithoutExtension(firstFile);
             //    var printPdf = firstFile.Replace(pdfFile, "print");
                 var pdfFullPath = $"{_path}/{mergedDir}/print.pdf";
-                document.Save(pdfFullPath);
+            Console.WriteLine("PAth: " + pdfFullPath);
+            document.Save(pdfFullPath);
               //);
             //}
 
