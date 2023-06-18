@@ -39,23 +39,37 @@ namespace printSheets
             //    "1Hannah Hede_A_klass15_Grund_Ravnkjermindes Nanny_Sa",
             //    "2Hannah Hede_A_klass15_Kür_Ravnkjermindes Nanny_Sa" };
 
-            var i = new Program();
-            i.path(args);
-            var fileNames = i.getFiles().ToArray();
+            var program = new Program();
+            program.path(args);
+            var fileNames = program.getFiles().ToArray();
             Array.Sort(fileNames, new CompareStrangAsNumber());
-            i.createDir(pdfDir);
-            var pdfFiles = i.printResultsExcelHandler(fileNames);
-            i.createDir(mergedDir);
-            Console.WriteLine("PAth: " + pdfFiles.FirstOrDefault());
-            i.MergeMultiplePDFIntoSinglePDF(pdfFiles);
+            program.createDirInPath(pdfDir);
+            var pdfFiles = program.printResultsExcelHandler(fileNames);
+            program.createDirInPath(mergedDir);
 
+            Console.WriteLine("PAth: " + pdfFiles.FirstOrDefault());
+            string fileName = program.CreateFileNameFromPath();
+            program.MergeMultiplePDFIntoSinglePDF(pdfFiles, fileName);
+
+        }
+
+        // pathen C:\episerver\voltige\VoltigeClosedXML\output\utskrift_2023-07-06\A\Svår klass 1, Seniorlag SM klass- Grund/ 
+        // ger tillbaka 
+        // A_Svår klass 1, Seniorlag SM klass- Grund
+        private string CreateFileNameFromPath()
+        { 
+            var backslashes = _path.Split('\\');
+            var newFileName = backslashes.LastOrDefault(s => !string.IsNullOrWhiteSpace(s));
+            newFileName = backslashes.LastOrDefault(s => !string.IsNullOrWhiteSpace(s) && s != newFileName) + "_" + newFileName;
+            createDir(mergedDir);
+            return newFileName;
         }
 
         private void path(string[] args)
         {
             if (args.Length > 0)
             {
-                _path = args[0];
+                _path = Path.GetFullPath(args[0]);
             }
             else
             {
@@ -71,18 +85,21 @@ namespace printSheets
             return Directory.GetFiles(_path, "*.xlsx");
         }
 
-        private void createDir(string name)
+        private void createDirInPath(string name)
         {
             DirectoryInfo di = Directory.CreateDirectory(_path + name);
         }
-
+        private void createDir(string name)
+        {
+            DirectoryInfo di = Directory.CreateDirectory(name);
+        }
 
         private ICollection<string> printResultsExcelHandler(ICollection<string> fileNames)
         {
             Excel.Application MyApp = null;
             Excel.Workbook MyBook = null;
             Excel.Workbooks workbooks = null;
-            Excel.Worksheet MySheet = null;
+            //Excel.Worksheet MySheet = null;
             //bool preliminiaryResults = checkBox1.Checked;
             //string fullpath = Path.Combine(printedresultsFolder, filename);
             //string pdfFullPath = fullpath + ".pdf";
@@ -127,7 +144,7 @@ namespace printSheets
                 //Marshal.FinalReleaseComObject(MyBook);
                 //Marshal.FinalReleaseComObject(workbooks);
                 //Marshal.FinalReleaseComObject(MyApp);
-                MySheet = null;
+                //MySheet = null;
                 MyBook = null;
                 workbooks = null;
                 MyApp = null;
@@ -138,7 +155,7 @@ namespace printSheets
             return pdfFiles;
         }
 
-        private void MergeMultiplePDFIntoSinglePDF(ICollection<string> pdfFiles)
+        private void MergeMultiplePDFIntoSinglePDF(ICollection<string> pdfFiles, string fileName)
         {
             Console.WriteLine("PAth2: " + pdfFiles.FirstOrDefault());
             var now = DateTime.Now;
@@ -171,7 +188,8 @@ namespace printSheets
             //{
             //    var pdfFile = Path.GetFileNameWithoutExtension(firstFile);
             //    var printPdf = firstFile.Replace(pdfFile, "print");
-                var pdfFullPath = $"{_path}/{mergedDir}/print.pdf";
+            //var pdfFullPath = $"{_path}/{mergedDir}/print.pdf";
+            var pdfFullPath = $"{mergedDir}/{fileName}.pdf";
             Console.WriteLine("PAth: " + pdfFullPath);
             document.Save(pdfFullPath);
               //);
